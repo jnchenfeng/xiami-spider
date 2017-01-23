@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import re
 import urllib2
+import traceback
 
 
 class XiamiDownload(object):
@@ -13,12 +14,6 @@ class XiamiDownload(object):
         self.url_song = url_song
         self.url_xml = self.__get_xml()
         self.info = self.__get_info()
-        #歌曲下载地址
-        self.url_location = self.info[0]
-        #歌词
-        self.lyc = self.info[1]
-        #封面
-        self.pic = self.info[2]
 
     def __get_xml(self):
 
@@ -37,22 +32,37 @@ class XiamiDownload(object):
             url=self.url_xml,
             headers=headers
         )
+        c = {}
         try:
             xml = urllib2.urlopen(req).read().decode('utf-8')
-            print("xml:"+xml)
             pattern_location = re.compile('<location>(.*?)</location>', re.S)
             location = re.search(pattern_location, xml).group(1)
-            print("location:"+location)
+            self.url_location = location
+            c["location"] = self.get_url()
             lyc_location = re.compile('<lyric>(.*?)</lyric>', re.S)
-            lyc = re.search(lyc_location, xml).group(1)
+            c["lyc"] = str(re.search(lyc_location, xml).group(1)).encode("utf-8")
             pic_location = re.compile('<pic>(.*?)</pic>', re.S)
-            pic = re.search(pic_location, xml).group(1)
+            c["pic"] = str(re.search(pic_location, xml).group(1)).encode("utf-8")
             length = re.compile('<length>(.*?)</length>', re.S)
-            songName = re.compile('<songName>(.*?)</songName>', re.S)
+            c["length"] = str(re.search(length, xml).group(1)).encode("utf-8")
+            song_name = re.compile('<songName>(.*?)</songName>', re.S)
+            c["song_name"] = re.search(song_name, xml).group(1)
+            song_id = re.compile('<song_id>(.*?)</song_id>', re.S)
+            c["song_id"] = str(re.search(song_id, xml).group(1)).encode("utf-8")
             artist_name = re.compile('<artist_name>(.*?)</artist_name>', re.S)
-            return (location, lyc, pic, length, songName,artist_name)
+            c["artist_name"] = re.search(artist_name, xml).group(1)
+            artist_id = re.compile('<artist_id>(.*?)</artist_id>', re.S)
+            c["artist_id"] = str(re.search(artist_id, xml).group(1)).encode("utf-8")
+            album_id = re.compile('<albumId>(.*?)</albumId>', re.S)
+            c["album_id"] = str(re.search(album_id, xml).group(1)).encode("utf-8")
+            album_name = re.compile('<album_name>(.*?)</album_name>', re.S)
+            album_name = str(re.search(album_name, xml).group(1)).encode("utf-8")
+            album_name = album_name.replace("<![CDATA[", "")
+            album_name = album_name.replace("]]>","")
+            c["album_name"] = album_name
         except:
-            return ("exception", "exception", "exception", "exception", "exception", "exception")
+            traceback.print_exc()
+        return c
 
     def get_url(self):
 
