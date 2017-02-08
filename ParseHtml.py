@@ -107,8 +107,19 @@ def get_song_url_sollect_album(url):
                     if link_info.get("rel") and link_info.get("rel")[0]== "canonical":
                         yield link_info.get("href")
 
+def get_song_tag(url):
+    """根据歌曲的url获取歌曲的tag"""
+    html_object = get_html_content(url)
+    if html_object:
+        song_tag_div = html_object.find("div", id="song_tags_block")
+        tag_div = (song_tag_div.findAll("div"))[0]
+        tag_a_label_list = tag_div.findAll("a")
+        for tag in tag_a_label_list:
+            yield tag.string
 
 if __name__ == '__main__':
     # genreList = get_song_id_by_genre_url("http://www.xiami.com/genre/detail/sid/3223")
     # print genreList
-    song_url_list = get_song_url_sollect_album("http://www.xiami.com/collect/186224109")
+    # song_url_list = get_song_url_sollect_album("http://www.xiami.com/collect/186224109")
+    tagList = get_song_tag("http://www.xiami.com/song/1773368757")
+    print(list(tagList))
